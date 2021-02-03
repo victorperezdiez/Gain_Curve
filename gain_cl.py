@@ -44,44 +44,46 @@ def clean(channels, outlierConstant):
    print ("Removing outliers for: \n")
    import numpy as np
 
-   my_dict_clean = {"Channel":[],"Elevation":[],"Tsys":[],"SEFD":[],"Gain":[]};
-   h = 0   
+   h = 0
 
    for i in channels:
       f = open("Data/data_" + i + ".dat", 'r')
       next(f)
       lines=f.readlines()
 
-      tsys=[]
-      SEFD=[]   
-      ele=[]
-      gain=[]   
-      tsys_clean=[]
       SEFD_clean=[]  
       ele_clean=[]
       gain_clean=[]
+      tsys_clean=[]
 
-      for x in lines:
-         ele.append(float(x.split(' ')[1]))
-         gain.append(float(x.split(' ')[4]))
-         tsys.append(float(x.split(' ')[2])) 
-         SEFD.append(float(x.split(' ')[3]))  
-      f.close()
+      for j in range(1, 17): 
+         tsys=[]
+         SEFD=[]   
+         ele=[]
+         gain=[]   
+      
+         for x in lines:
+            if (10+(j-1)*5 <= float(x.split(' ')[1]) <= 10+j*5):          #Splitting in 5º portions, we eliminate values far from mean
+               ele.append(float(x.split(' ')[1]))
+               gain.append(float(x.split(' ')[4]))
+               tsys.append(float(x.split(' ')[2])) 
+               SEFD.append(float(x.split(' ')[3]))  
+         f.close()
 
-      a = np.array(gain)
-      upper_quartile = np.percentile(a, 75)
-      lower_quartile = np.percentile(a, 25)
-      IQR = (upper_quartile - lower_quartile) * outlierConstant
-      quartileSet = (lower_quartile - IQR, upper_quartile + IQR)
-      k = 0
-      for y in a.tolist():
-         if (y >= quartileSet[0] and y <= quartileSet[1] and 0.005 < y < 1):
-            ele_clean.append(ele[k])
-            gain_clean.append(gain[k])
-            tsys_clean.append(tsys[k])
-            SEFD_clean.append(SEFD[k])
+         a = np.array(gain)
+         upper_quartile = np.percentile(a, 75)
+         lower_quartile = np.percentile(a, 25)
+         IQR = (upper_quartile - lower_quartile) * outlierConstant
+         quartileSet = (lower_quartile - IQR, upper_quartile + IQR)
+         k = 0
+         for y in a.tolist():
+            if (y >= quartileSet[0] and y <= quartileSet[1] and 0.005 < y < 1):
+               ele_clean.append(ele[k])
+               gain_clean.append(gain[k])
+               tsys_clean.append(tsys[k])
+               SEFD_clean.append(SEFD[k])
 
-         k = k + 1
+            k = k + 1
 
       #Writing files
       with open('Clean_Data/data_' + i + ".dat", 'w') as f:
@@ -141,25 +143,5 @@ def graph(data, cle, outlierConstant):
 print("\n GAIN CURVES \n")
 data =  "tsys32vo_353.log"             # Filename
 cle = "Clean_"                         # "Clean_" for cleaning, "" for no cleaning
-outlierConstant = 1                    # The smaller, the more clean         
+outlierConstant = 1.1                    # The smaller, the more clean         
 graph(data, cle, outlierConstant)
-
-	
-   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	
-
-
